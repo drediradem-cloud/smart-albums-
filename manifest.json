@@ -1,0 +1,16 @@
+{
+  "name": "Smart Albums",
+  "short_name": "Smart Albums",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#100b20",
+  "theme_color": "#17102f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

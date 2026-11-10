@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17102f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Smart Albums">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Smart Albums</title>
+<style>
+:root{color-scheme:dark;--bg:#100b20;--panel:#1b1430;--panel2:#241a40;--purple:#9b70ff;--muted:#b8accf;--line:#392b59}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#38205e 0%,var(--bg) 55%);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:760px;margin:auto;padding:28px 18px 48px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:26px}
+.logo{width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#b18aff,#5127a4);display:grid;place-items:center;box-shadow:0 8px 28px #7b45dd55;overflow:hidden}
+.logo svg{width:50px;height:50px}
+h1{font-size:25px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:5px}
+.hero{background:linear-gradient(145deg,#281a48,#19122d);border:1px solid var(--line);border-radius:25px;padding:22px;margin-bottom:20px}
+.hero h2{font-size:20px;margin:0 0 8px}.hero p{color:var(--muted);line-height:1.7;margin:0 0 18px;font-size:14px}
+.upload{display:block;text-align:center;background:linear-gradient(100deg,#a57aff,#7445db);color:white;padding:15px;border-radius:15px;font-weight:700;cursor:pointer}
+.upload input{display:none}.stats{display:flex;gap:10px;margin-top:16px}.stat{flex:1;background:#ffffff0b;border:1px solid #ffffff12;border-radius:14px;padding:12px}.stat strong{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px}
+.status{font-size:13px;color:#cfc2e7;margin-top:14px;line-height:1.6}
+h3{font-size:18px;margin:26px 2px 14px}.albums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.album{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px;min-width:0}
+.album-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.album-name{font-weight:650}.count{color:#d7c8ff;background:#3b2a61;border-radius:20px;padding:4px 9px;font-size:12px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#302448}
+.empty{border:1px dashed #594578;border-radius:18px;padding:26px 18px;text-align:center;color:var(--muted);line-height:1.7}
+.note{font-size:12px;color:#988bac;line-height:1.6;margin-top:18px}
+@media(min-width:600px){.albums{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="logo" aria-hidden="true">
+<svg viewBox="0 0 100 100" fill="none"><path d="M12 24 49 9l35 17-37 17L12 24Z" fill="#fff" opacity=".96"/><path d="m12 24 35 19v43L12 66V24Z" fill="#e9dcff"/><path d="m47 43 37-17v40L47 86V43Z" fill="#c9aaff"/><path d="M30 31 57 19l17 8-28 13-16-9Z" fill="#6f42bd"/><path d="M47 43v43" stroke="#8c61d6" stroke-width="3"/></svg>
+</div>
+<div><h1>Smart Albums</h1><div class="sub">رتّب صورك بذكاء، في ألبومات تلقائية</div></div>
+</header>
+<section class="hero">
+<h2>خلّي صورك تلاقي مكانها ✨</h2>
+<p>اختر صوراً من جهازك، وسيحاول التطبيق التعرّف على محتواها وتجميعها في أقسام مناسبة. الصور تبقى على جهازك ولا تُرفع إلى خادم.</p>
+<label class="upload">＋ اختر الصور من الآيفون<input id="photos" type="file" accept="image/*" multiple></label>
+<div class="stats"><div class="stat"><strong id="total">0</strong><span>إجمالي الصور</span></div><div class="stat"><strong id="groups">0</strong><span>الألبومات المكتشفة</span></div></div>
+<div class="status" id="status">ابدأ باختيار الصور. يحتاج التصنيف إلى اتصال بالإنترنت لتحميل نموذج الذكاء الاصطناعي أول مرة.</div>
+</section>
+<h3>ألبوماتك</h3>
+<div id="albums" class="albums"><div class="empty" style="grid-column:1/-1">لا توجد ألبومات بعد.<br>اختر صورك لنبدأ ترتيبها 💜</div></div>
+<p class="note">ملاحظة: التصنيف تجريبي وقد يخطئ أحياناً. يتعرّف النموذج على الأشياء والمشاهد بشكل تقريبي، ولا يحدد اسم المكان الحقيقي أو يضمن أن الصور التُقطت في الموقع نفسه.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+<script>
+const input=document.getElementById('photos'),statusEl=document.getElementById('status'),albumsEl=document.getElementById('albums');
+const labels=[
+{key:'شاطئ',icon:'🌊',words:['beach','seashore','ocean','sea','coast','sandbar','lakeside','promontory']},
+{key:'منزل',icon:'🏠',words:['home','house','kitchen','living room','bedroom','dining table','sofa','studio couch','wardrobe']},
+{key:'سيارات',icon:'🚗',words:['car','sports car','convertible','limousine','minivan','jeep','truck','bus','racer']},
+{key:'حيوانات',icon:'🐾',words:['dog','cat','bird','horse','tiger','lion','fish','snake','rabbit','hamster','elephant','bear']},
+{key:'طعام',icon:'🍽️',words:['food','pizza','burger','cheeseburger','espresso','coffee','ice cream','cake','plate','burrito','hotdog','carbonara']},
+{key:'طبيعة',icon:'🌿',words:['tree','forest','mountain','valley','flower','plant','lakeside','volcano','cliff','alp']},
+{key:'مدن ومبانٍ',icon:'🏙️',words:['building','church','mosque','palace','streetcar','street','skyscraper','bridge','castle','monastery']},
+{key:'أشخاص',icon:'👤',words:['person','bridegroom','groom','maillot','suit','face','jersey','swimming trunks']}
+];
+function categorize(preds){for(const p of preds){const s=p.className.toLowerCase();for(const g of labels){if(g.words.some(w=>s.includes(w)))return g.key;}}return 'أخرى';}
+input.addEventListener('change',async()=>{
+ const files=[...input.files].filter(f=>f.type.startsWith('image/'));if(!files.length)return;
+ albumsEl.innerHTML='';document.getElementById('total').textContent=files.length;statusEl.textContent='جارٍ تحميل نموذج التصنيف…';
+ let model;try{if(!window.mobilenet)throw Error('لم يتم تحميل المكتبة');model=await mobilenet.load();}catch(e){statusEl.textContent='تعذّر تحميل نموذج الذكاء الاصطناعي. تأكد من اتصال الإنترنت ثم أعد تحميل الصفحة.';return;}
+ const groups={};let done=0;
+ for(const file of files){
+  try{
+   const url=URL.createObjectURL(file),img=new Image();img.src=url;await new Promise((res,rej)=>{img.onload=res;img.onerror=rej});
+   const preds=await model.classify(img);const cat=categorize(preds);
+   (groups[cat]??=[]).push({url,name:file.name});
+  }catch(e){(groups['أخرى']??=[]).push({url:URL.createObjectURL(file),name:file.name});}
+  done++;statusEl.textContent=`تم تحليل ${done} من ${files.length} صورة…`;
+ }
+ const order=labels.map(x=>x.key).concat('أخرى');albumsEl.innerHTML='';
+ for(const key of order){if(!groups[key]?.length)continue;const def=labels.find(x=>x.key===key),items=groups[key];
+  const card=document.createElement('section');card.className='album';
+  const head=document.createElement('div');head.className='album-head';
+  const name=document.createElement('div');name.className='album-name';name.textContent=(def?.icon||'🖼️')+' '+key;
+  const count=document.createElement('span');count.className='count';count.textContent=items.length+' صورة';
+  head.append(name,count);card.append(head);
+  const thumbs=document.createElement('div');thumbs.className='thumbs';
+  items.slice(0,6).forEach(item=>{const im=document.createElement('img');im.className='thumb';im.src=item.url;im.alt=item.name;thumbs.append(im)});
+  card.append(thumbs);albumsEl.append(card);
+ }
+ document.getElementById('groups').textContent=Object.keys(groups).length;
+ statusEl.textContent='اكتمل التصنيف التجريبي. يمكنك اختيار صور أخرى لإعادة تنظيمها.';
+});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
